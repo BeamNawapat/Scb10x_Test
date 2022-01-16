@@ -149,7 +149,7 @@ contract lendingprotocol{
 
     event Deposit_Event(address from,uint256 ValueOfETH,uint256 ValueofcETH);
     event EnterMarkets_Event(address[] cTokens,uint[] error_code);
-    event ExitBackETH_Event(address user,uint256 value,uint err_code);
+    event ExitBackETH_Event(address user,uint256 value);
     event UnderlyingPool_Event(c_Interface coin,uint value);
 
     // ceth = 0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5
@@ -247,7 +247,7 @@ contract lendingprotocol{
         return amountOut;
     }
 
-    function DepositwETHtoDai(uint value) public returns (uint256 amountOut) { // ขาย wETH จากการยืม DAI //
+    function DepositwETHtoDai(uint value) public payable returns (uint256 amountOut) { // ขาย wETH จากการยืม DAI //
         require(_wrapunwrapeth[msg.sender] >= value,"Lending: Insufficient.");
         require(_valueofborrow_Dai[msg.sender] > 0,"Lending: You aren't borrow.");
         require(ERC20(WETH9_Address).allowance(msg.sender,address(this)) >= value,"Lending: Insufficient Allowance.");
@@ -325,7 +325,7 @@ contract lendingprotocol{
         require(Liquidity >= _value,"Lending: AccountLiquidity Insufficient");
         (,uint ceth_before,,) = AccountSnapshot(cETH);
 
-        (uint err) = cETH.redeemUnderlying(_value); // redeem  <-- ERROR //
+        require(cETH.redeemUnderlying(_value) == 0, "Lending: something went wrong"); // redeem  <-- ERROR //
 
         (,uint ceth_after,,) = AccountSnapshot(cETH);
 
@@ -336,7 +336,7 @@ contract lendingprotocol{
         _valuecETHofuser[_user] -= sum;
         _depositvalueETH[_user] -= _value;
 
-        emit ExitBackETH_Event(_user,_value,err);
+        emit ExitBackETH_Event(_user,_value);
 
 
     }
